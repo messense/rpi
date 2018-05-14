@@ -99,6 +99,7 @@ def get_bridge():
     bridge.add_accessory(ShutdownSwitch('Shutdown Pi'))
 
     services = [
+        ('nginx', 'nginx'),
         ('netdata', 'netdata monitor'),
         ('frp', 'frp proxy'),
     ]
