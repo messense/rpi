@@ -1,5 +1,4 @@
 import os
-import asyncio
 import logging
 import signal
 import subprocess
@@ -24,17 +23,9 @@ class RpiTemperatureSensor(AsyncAccessory):
 
     @AsyncAccessory.run_at_interval(3)
     async def run(self):
-        process = await asyncio.create_subprocess_exec(
-            '/usr/bin/vcgencmd',
-            'measure_temp',
-            stdout=asyncio.subprocess.PIPE
-        )
-        stdout, stderr = await process.communicate()
-        if process.returncode == 0:
-            temp = float(stdout.decode().strip()[5:9])
-            self.char_temp.set_value(temp)
-        else:
-            logger.error('Mersure temperature failed: %s', stderr.decode())
+        # FIXME: use asyncio subprocess
+        temp = subprocess.check_output(['/usr/bin/vcgencmd', 'measure_temp']).decode().strip()[5:9]
+        self.char_temp.set_value(float(temp))
 
 
 class ShutdownSwitch(Accessory):
