@@ -63,10 +63,12 @@ class SystemdServiceSwitch(Accessory):
         super().__init__(*args, **kwargs)
         if not service.endswith('.service'):
             service = service + '.service'
+        self.systemd_service = service
         try:
             self.unit = self.manager.get_unit(service)
         except SystemdError:
             logger.warning('Get %s unit error', service)
+            self.unit = None
             return
 
         is_on = self.unit.properties.ActiveState == 'active' and self.unit.properties.SubState == 'running'
@@ -79,6 +81,9 @@ class SystemdServiceSwitch(Accessory):
 
     def toggle_service(self, value):
         try:
+            if self.unit is None:
+                self.unit = self.manager.get_unit(self.systemd_service)
+
             if value:
                 self.unit.start('fail')
             else:
