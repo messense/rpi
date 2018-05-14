@@ -59,13 +59,15 @@ def get_bridge():
     return bridge
 
 
-acc = get_bridge()
 
-# Start the accessory on port 51826
-driver = AccessoryDriver(acc, port=51826)
-# We want KeyboardInterrupts and SIGTERM (kill) to be handled by the driver itself,
-# so that it can gracefully stop the accessory, server and advertising.
-signal.signal(signal.SIGINT, driver.signal_handler)
-signal.signal(signal.SIGTERM, driver.signal_handler)
-# Start it!
-driver.start()
+if __name__ == '__main__':
+    acc = get_bridge()
+
+    # Start the accessory on port 51826
+    driver = AccessoryDriver(acc, port=51826)
+    # We want KeyboardInterrupts and SIGTERM (kill) to be handled by the driver itself,
+    # so that it can gracefully stop the accessory, server and advertising.
+    signal.signal(signal.SIGINT, driver.signal_handler)
+    signal.signal(signal.SIGTERM, driver.signal_handler)
+    # Start it!
+    driver.start()
