@@ -1,27 +1,19 @@
-"""An example of how to setup and start an Accessory.
-
-This is:
-1. Create the Accessory object you want.
-2. Add it to an AccessoryDriver, which will advertise it on the local network,
-    setup a server to answer client queries, etc.
-"""
 import os
 import logging
 import signal
-import time
-import random
 import subprocess
 
+from pyhap import loader
 from pyhap.const import CATEGORY_SENSOR, CATEGORY_SWITCH
 from pyhap.accessory import Bridge, Accessory, AsyncAccessory
 from pyhap.accessory_driver import AccessoryDriver
-import pyhap.loader as loader
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class RpiTemperatureSensor(AsyncAccessory):
+    """A sensor accessory that measures temperature of the Raspberry Pi it runs on"""
     category = CATEGORY_SENSOR
 
     def __init__(self, *args, **kwargs):
@@ -31,13 +23,13 @@ class RpiTemperatureSensor(AsyncAccessory):
 
     @AsyncAccessory.run_at_interval(3)
     async def run(self):
+        # FIXME: use asyncio subprocess
         temp = subprocess.check_output(['/usr/bin/vcgencmd', 'measure_temp']).decode().strip()[5:9]
         self.char_temp.set_value(float(temp))
 
 
 class ShutdownSwitch(Accessory):
     """A switch accessory that executes sudo shutdown."""
-
     category = CATEGORY_SWITCH
 
     def __init__(self, *args, **kwargs):
@@ -59,7 +51,6 @@ class ShutdownSwitch(Accessory):
 
 
 def get_bridge():
-    """Call this method to get a Bridge instead of a standalone accessory."""
     bridge = Bridge(display_name='Raspberry Pi')
     temp_sensor = RpiTemperatureSensor('Pi Temperature Sensor')
     bridge.add_accessory(temp_sensor)
@@ -68,7 +59,7 @@ def get_bridge():
     return bridge
 
 
-acc = get_bridge()  # Change to get_bridge() if you want to run a Bridge.
+acc = get_bridge()
 
 # Start the accessory on port 51826
 driver = AccessoryDriver(acc, port=51826)
