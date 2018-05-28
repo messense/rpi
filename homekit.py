@@ -89,7 +89,7 @@ class SystemdServiceSwitch(Accessory):
             else:
                 self.unit.stop('fail')
         except SystemdError:
-            logger.exception('Toggle Systemd service failed')
+            logger.exception('Toggle Systemd service %s failed', self.systemd_service)
 
 
 def get_bridge():
