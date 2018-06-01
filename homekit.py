@@ -39,6 +39,24 @@ class DHT11Sensor(AsyncAccessory):
             self.char_humidity.set_value(result.humidity)
 
 
+class MotionSensor(Accessory):
+    category = CATEGORY_SENSOR
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        serv_motion = self.add_preload_service('MotionSensor')
+        self.char_detected = serv_motion.configure_char('MotionDetected')
+        GPIO.setup(12, GPIO.IN)
+        GPIO.add_event_detect(12, GPIO.RISING, callback=self._detected)
+
+    def _detected(self, _pin):
+        self.char_detected.set_value(True)
+
+    def stop(self):
+        super().stop()
+        GPIO.cleanup()
+
+
 class RpiTemperatureSensor(AsyncAccessory):
     """A sensor accessory that measures temperature of the Raspberry Pi it runs on"""
     category = CATEGORY_SENSOR
@@ -131,6 +149,7 @@ def get_bridge():
         bridge.add_accessory(SystemdServiceSwitch(display_name, service=service))
 
     bridge.add_accessory(DHT11Sensor('室内温湿度'))
+    bridge.add_accessory(MotionSensor('运动'))
     return bridge
 
 
