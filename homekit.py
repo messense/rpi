@@ -47,14 +47,13 @@ class MotionSensor(Accessory):
         serv_motion = self.add_preload_service('MotionSensor')
         self.char_detected = serv_motion.configure_char('MotionDetected')
         GPIO.setup(12, GPIO.IN)
-        GPIO.add_event_detect(12, GPIO.RISING, callback=self._detected)
-        GPIO.add_event_detect(12, GPIO.FALLING, callback=self._nothing)
+        GPIO.add_event_detect(12, GPIO.BOTH, callback=self._detected)
 
-    def _detected(self, _pin):
-        self.char_detected.set_value(True)
-
-    def _nothing(self, _pin):
-        self.char_detected.set_value(False)
+    def _detected(self, pin):
+        if GPIO.input(pin):
+            self.char_detected.set_value(True)
+        else:
+            self.char_detected.set_value(False)
 
     def stop(self):
         super().stop()
