@@ -16,7 +16,7 @@ import dht11
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 
 
 class DHT11Sensor(AsyncAccessory):
@@ -48,9 +48,13 @@ class MotionSensor(Accessory):
         self.char_detected = serv_motion.configure_char('MotionDetected')
         GPIO.setup(12, GPIO.IN)
         GPIO.add_event_detect(12, GPIO.RISING, callback=self._detected)
+        GPIO.add_event_detect(12, GPIO.FALLING, callback=self._nothing)
 
     def _detected(self, _pin):
         self.char_detected.set_value(True)
+
+    def _nothing(self, _pin):
+        self.char_detected.set_value(False)
 
     def stop(self):
         super().stop()
