@@ -3,16 +3,40 @@ import logging
 import signal
 import subprocess
 
+from RPi import GPIO
 from pyhap import loader
 from pyhap.const import CATEGORY_SENSOR, CATEGORY_SWITCH
 from pyhap.accessory import Bridge, Accessory, AsyncAccessory
 from pyhap.accessory_driver import AccessoryDriver
-
 from systemd_dbus.exceptions import SystemdError
 from systemd_dbus.manager import Manager as SystemdManager
 
+import dht11
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+GPIO.setmode(GPIO.BCM)
+
+
+class DHT11Sensor(AsyncAccessory):
+    category = CATEGORY_SENSOR
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        serv_temp = self.add_preload_service('TemperatureSensor')
+        self.char_temp = serv_temp.configure_char('CurrentTemperature')
+
+        serv_humidity = self.add_preload_service('HumiditySensor')
+        self.char_humidity = serv_humidity.configure_char('CurrentRelativeHumidity')
+
+    @AsyncAccessory.run_at_interval(3)
+    async def run(self):
+        instance = dht11.DHT11(pin=4)
+        result = instance.read()
+        if result.is_valid():
+            self.char_temp.set_value(result.temperature)
+            self.char_humidity.set_value(result.humidity)
 
 
 class RpiTemperatureSensor(AsyncAccessory):
@@ -106,6 +130,7 @@ def get_bridge():
     for service, display_name in services:
         bridge.add_accessory(SystemdServiceSwitch(display_name, service=service))
 
+    bridge.add_accessory(DHT11Sensor('室内温湿度'))
     return bridge
 
 
