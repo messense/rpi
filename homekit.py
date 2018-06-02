@@ -32,7 +32,7 @@ class DHT11Sensor(AsyncAccessory):
 
     @AsyncAccessory.run_at_interval(3)
     async def run(self):
-        instance = dht11.DHT11(pin=4)
+        instance = dht11.DHT11(pin=7)
         result = instance.read()
         if result.is_valid():
             self.char_temp.set_value(result.temperature)
